@@ -1,20 +1,17 @@
 (function() {
-  /**
-  * @function SongPlayer()
-  * @desc Creates the SongPlayer service and its methods using Factory Recipe
-  */
-  function SongPlayer() {
+  function SongPlayer(Fixtures) {
+
     /**
     * @desc SongPlayer services object
-    * @type Service using the Factory Recipe
+    * @type {Object} Service using the Factory Recipe
     */
     var SongPlayer= {};
 
     /**
-    * @desc A song being played by the player
+    * @desc retrieves album object
     * @type {Object}
     */
-    var currentSong = null;
+    var currentAlbum = Fixtures.getAlbum();
 
     /**
     * @desc Buzz object audio file
@@ -30,14 +27,18 @@
     var setSong = function(song) {
       if (currentBuzzObject) {
         currentBuzzObject.stop();
-        currentSong.playing = null;
+        SongPlayer.currentSong.playing = null;
       }
       currentBuzzObject = new buzz.sound(song.audioUrl, {
         formats: ['mp3'],
         preload: true
       });
 
-      currentSong = song;
+      /**
+      * @desc Active song object from list of songs
+      * @type {Object}
+      */
+      SongPlayer.currentSong = song;
 
     };
     /**
@@ -51,15 +52,32 @@
     };
 
     /**
-    * @function SongPlayer.play
-    * @desc a public method of the SongPlayer factory object that plays a new or paused song
+    * @function getSongIndex
+    * @desc finds index of current song
+    * @param {Object} song
+    * @returns the index of the currently playing song
+    */
+    var getSongIndex = function(song) {
+      return currentAlbum.songs.indexOf(song);
+    };
+
+    /**
+    * @desc A song being played by the player
+    * @type {Object}
+    */
+    SongPlayer.currentSong = null;
+
+    /**
+    * @function play
+    * @desc Play current or new song
     * @param {Object} song
     */
     SongPlayer.play = function(song) {
-      if (currentSong !== song) {
+      song = song || SongPlayer.currentSong;
+      if (SongPlayer.currentSong !== song) {
         setSong(song);
         playSong(song);
-    } else if (currentSong === song) {
+    } else if (SongPlayer.currentSong === song) {
       if (currentBuzzObject.isPaused()) {
         playSong(song);
       }
@@ -67,14 +85,32 @@
   };
 
     /**
-    * @function SongPlayer.pause
-    * a public method of the SongPlayer factory object that pauses currently playing song
+    * @function pause
+    * @desc Pause current song
     * @param {Object} song
     */
-
     SongPlayer.pause = function(song) {
+      song = song || SongPlayer.currentSong;
       currentBuzzObject.pause();
       song.playing = false;
+    };
+
+    /**
+    * @function SongPlayer.previous
+    * @desc retrieves index of song currently playing and subtracts one to provide previous track index
+    */
+    SongPlayer.previous = function() {
+      var currentSongIndex = getSongIndex(SongPlayer.currentSong);
+      currentSongIndex--;
+
+      if (currentSongIndex < 0) {
+        currentBuzzObject.stop();
+        SongPlayer.currentSong.playing = null;
+      } else {
+        var song = currentAlbum.songs[currentSongIndex];
+        setSong(song);
+        playSong(song);
+      }
     };
 
     return SongPlayer;
@@ -83,6 +119,6 @@
 
   angular
     .module('blocJams')
-    .factory('SongPlayer', SongPlayer);
+    .factory('SongPlayer', ['Fixtures', SongPlayer]);
 
 })();
