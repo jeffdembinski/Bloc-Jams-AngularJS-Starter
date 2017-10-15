@@ -7,17 +7,13 @@
     */
     var SongPlayer= {};
 
-    /**
-    * @desc retrieves album object
-    * @type {Object}
-    */
-    var currentAlbum = Fixtures.getAlbum();
 
     /**
     * @desc Buzz object audio file
     * @type {Object}
     */
     var currentBuzzObject = null;
+
 
     /**
     * @function setSong
@@ -33,23 +29,31 @@
         formats: ['mp3'],
         preload: true
       });
-
-      /**
-      * @desc Active song object from list of songs
-      * @type {Object}
-      */
       SongPlayer.currentSong = song;
-
     };
+
+
     /**
     * @function playSong
-    * @desc private function to play `song` and sets the `currentSong.playing = true`
+    * @desc plays current song and sets playing state to true
     * @param {Object} song
     */
     var playSong = function(song) {
       currentBuzzObject.play();
       song.playing = true;
     };
+
+
+    /**
+    * @function stopSong
+    * @desc stops current song and sets playing state to false
+    * @param {Object} song
+    */
+    var stopSong = function(song) {
+      currentBuzzObject.stop();
+      song.playing = null;
+    };
+
 
     /**
     * @function getSongIndex
@@ -58,14 +62,23 @@
     * @returns the index of the currently playing song
     */
     var getSongIndex = function(song) {
-      return currentAlbum.songs.indexOf(song);
+      return SongPlayer.currentAlbum.songs.indexOf(song);
     };
+
+
+    /**
+    * @desc retrieves album object
+    * @type {Object}
+    */
+     SongPlayer.currentAlbum = Fixtures.getAlbum();
+
 
     /**
     * @desc A song being played by the player
     * @type {Object}
     */
     SongPlayer.currentSong = null;
+
 
     /**
     * @function play
@@ -84,6 +97,7 @@
     }
   };
 
+
     /**
     * @function pause
     * @desc Pause current song
@@ -91,13 +105,13 @@
     */
     SongPlayer.pause = function(song) {
       song = song || SongPlayer.currentSong;
-      currentBuzzObject.pause();
-      song.playing = false;
+      stopSong(song);
     };
 
+
     /**
-    * @function SongPlayer.previous
-    * @desc retrieves index of song currently playing and subtracts one to provide previous track index
+    * @function previous
+    * @desc makes player skip to previous song in song list
     */
     SongPlayer.previous = function() {
       var currentSongIndex = getSongIndex(SongPlayer.currentSong);
@@ -107,11 +121,30 @@
         currentBuzzObject.stop();
         SongPlayer.currentSong.playing = null;
       } else {
-        var song = currentAlbum.songs[currentSongIndex];
+        var song = SongPlayer.currentAlbum.songs[currentSongIndex];
         setSong(song);
         playSong(song);
       }
     };
+
+
+    /**
+    * @function next
+    * @desc makes player skip to next song in song list
+    */
+     SongPlayer.next = function ()  {
+       var currentSongIndex = getSongIndex(SongPlayer.currentSong);
+       currentSongIndex++;
+
+       if (currentSongIndex >= SongPlayer.currentAlbum.songs.length) {
+         currentBuzzObject.stop();
+         SongPlayer.currentSong.playing = null;
+       } else {
+         var song = SongPlayer.currentAlbum.songs[currentSongIndex];
+         setSong(song);
+         playSong(song);
+       }
+     };
 
     return SongPlayer;
 
